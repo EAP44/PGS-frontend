@@ -40,6 +40,7 @@ export default function Stagiaire() {
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const router = useRouter();
   const [rejectedInterns, setRejectedInterns] = useState([]);
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
@@ -125,35 +126,19 @@ export default function Stagiaire() {
     }
   };
 
-  // Update stagiaire status
-  const updateStagiaireStatus = async (stagiaireId, status) => {
-    try {
-      const token = Cookies.get("token");
-      const response = await fetch("/api/stagiaire/update-status", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id: stagiaireId, status: status }),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update stagiaire status");
-      }
-
-      await fetchStagiaires();
-    } catch (err) {
-      console.error("Error updating stagiaire status:", err);
-      setError("Erreur lors de la mise à jour du statut");
-    }
+  // Update stagiaire
+  const GoToUpdate = async (stagiaireId) => {
+    router.push(`/Stagiaires/Modifier?id=${stagiaireId}`);
+  };
+  // DetailsStagiaire  stagiaire
+  const GoToDetailsStagiaire = async (stagiaireId) => {
+    router.push(`/Stagiaires/${stagiaireId}`);
   };
 
   // Delete stagiaire - Fixed function signature
   const deleteStagiaire = async (stagiaireId) => {
     if (!deleteModal.intern) return;
-    
+
     try {
       const token = Cookies.get("token");
       const response = await fetch(
@@ -207,18 +192,16 @@ export default function Stagiaire() {
           stagiaire.etablissement
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          stagiaire.ecole
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase())
+          stagiaire.ecole?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Filter by status - Fixed status mapping
     if (statusFilter !== "all") {
       const statusMap = {
-        "pending": "En attente",
-        "approved": "Complète", 
-        "rejected": "Annulé"
+        pending: "En attente",
+        approved: "Complète",
+        rejected: "Annulé",
       };
       filtered = filtered.filter(
         (stagiaire) => stagiaire.status === statusMap[statusFilter]
@@ -362,7 +345,11 @@ export default function Stagiaire() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => deleteStagiaire(deleteModal.intern?.id || deleteModal.intern?._id)}
+                  onClick={() =>
+                    deleteStagiaire(
+                      deleteModal.intern?.id || deleteModal.intern?._id
+                    )
+                  }
                   className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                 >
                   Rejeter
@@ -375,7 +362,7 @@ export default function Stagiaire() {
 
       {/* Sidebar */}
       <Sidebar isLoaded={isLoaded} userProfile={userProfile} />
-      
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col ml-64">
         {/* Header */}
@@ -615,8 +602,10 @@ export default function Stagiaire() {
                             <div className="flex items-center">
                               <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                                 <span className="text-purple-600 font-medium text-sm">
-                                  {stagiaire.nom?.charAt(0).toUpperCase() || 'S'}
-                                  {stagiaire.prenom?.charAt(0).toUpperCase() || 'T'}
+                                  {stagiaire.nom?.charAt(0).toUpperCase() ||
+                                    "S"}
+                                  {stagiaire.prenom?.charAt(0).toUpperCase() ||
+                                    "T"}
                                 </span>
                               </div>
                               <div className="ml-4">
@@ -646,7 +635,9 @@ export default function Stagiaire() {
                             <div className="flex items-center">
                               <Building className="w-4 h-4 text-gray-400 mr-2" />
                               <span className="text-sm text-gray-900">
-                                {stagiaire.ecole || stagiaire.etablissement || "Non renseigné"}
+                                {stagiaire.ecole ||
+                                  stagiaire.etablissement ||
+                                  "Non renseigné"}
                               </span>
                             </div>
                           </td>
@@ -661,10 +652,18 @@ export default function Stagiaire() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div className="flex space-x-2">
-                              <button className="text-blue-600 hover:text-blue-800 transition-colors">
+                              <button
+                                onClick={() =>
+                                  GoToDetailsStagiaire(stagiaire._id)
+                                }
+                                className="text-blue-600 hover:text-blue-800 transition-colors"
+                              >
                                 <Eye className="w-4 h-4" />
                               </button>
-                              <button className="text-green-600 hover:text-green-800 transition-colors">
+                              <button
+                                onClick={() => GoToUpdate(stagiaire._id)}
+                                className="text-green-600 hover:text-green-800 transition-colors"
+                              >
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button

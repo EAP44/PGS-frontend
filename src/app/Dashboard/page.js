@@ -159,54 +159,9 @@ export default function InternshipDashboard() {
       intern?.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Update intern status
-  const updateInternStatus = async (internId, status) => {
-    if (isUpdating) return;
-
-    setIsUpdating(true);
-    setError(null);
-
-    try {
-      const token = getToken();
-      if (!token) {
-        router.push("/Login");
-        return;
-      }
-
-      const response = await fetch("/api/stagiaire/update-status", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id: internId, status: status }),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(`Update failed: ${response.status}`);
-      }
-
-      // Remove the intern from pending list instead of full page reload
-      setPendingInterns((prev) =>
-        prev.filter((intern) => intern._id !== internId)
-      );
-
-      // Update stats
-      setStats((prev) =>
-        prev.map((stat) => {
-          if (stat.label === "Stagiaires en attente de validation") {
-            return { ...stat, value: Math.max(0, stat.value - 1) };
-          }
-          return stat;
-        })
-      );
-    } catch (err) {
-      console.error("Error updating intern status:", err);
-      setError("Erreur lors de la mise à jour du statut. Veuillez réessayer.");
-    } finally {
-      setIsUpdating(false);
-    }
+  // DetailsStagiaire  stagiaire
+  const GoToDetailsStagiaire = async (stagiaireId) => {
+    router.push(`/Stagiaires/${stagiaireId}`);
   };
 
   // Delete stagiaire
@@ -523,15 +478,15 @@ export default function InternshipDashboard() {
                               <div className="flex space-x-2">
                                 <button
                                   onClick={() =>
-                                    UpdateInternStatus(intern._id, "approved")
+                                    GoToDetailsStagiaire(intern._id)
                                   }
-                                  className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs hover:bg-green-200 transition-all duration-200 transform hover:scale-105"
+                                  className="bg-blue-100 text-blue-600 px-3 py-1 rounded-s text-xs hover:bg-blue-200 transition-all duration-200 transform hover:scale-105"
                                 >
-                                  Approuver
+                                  détails
                                 </button>
                                 <button
                                   onClick={() => openDeleteModal(intern)}
-                                  className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs hover:bg-red-200 transition-all duration-200 transform hover:scale-105"
+                                  className="bg-red-100 text-red-600 px-3 py-1 rounded-s text-xs hover:bg-red-200 transition-all duration-200 transform hover:scale-105"
                                 >
                                   Rejeter
                                 </button>

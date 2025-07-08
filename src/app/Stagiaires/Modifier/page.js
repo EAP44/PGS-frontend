@@ -1,13 +1,25 @@
 "use client";
 import Cookies from "js-cookie";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import {ArrowLeft,User,Building,Calendar,FileText,Save,Loader2,CheckCircle,XCircle} from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  ArrowLeft,
+  User,
+  Building,
+  Calendar,
+  FileText,
+  Save,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  Edit,
+} from "lucide-react";
 import Sidebar from "@/component/UI/Sidebar";
 
-export default function AjouterStagiaire() {
+export default function ModifierStagiaire() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -33,10 +45,12 @@ export default function AjouterStagiaire() {
     documents: [],
     commentaires: [],
   });
+  const [originalData, setOriginalData] = useState({});
   const [errors, setErrors] = useState({});
   const [supervisors, setSupervisors] = useState([]);
   const router = useRouter();
-
+  const searchParams = useSearchParams();
+  const stagiaireId = searchParams.get("id");
   // Fetch user profile
   const fetchUserProfile = async () => {
     try {
@@ -87,10 +101,80 @@ export default function AjouterStagiaire() {
     }
   };
 
+  // Fetch stagiaire data
+  const fetchStagiaire = async () => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(`/api/Stagiaire/${stagiaireId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch stagiaire data");
+      }
+
+      const data = await response.json();
+      const stagiaireData = data.stagiaire || data;
+
+      // Format dates for input fields
+      const formatDate = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toISOString().split("T")[0];
+      };
+
+      const formattedData = {
+        nom: stagiaireData.nom || "",
+        prenom: stagiaireData.prenom || "",
+        email: stagiaireData.email || "",
+        phoneNumber: stagiaireData.phoneNumber || "",
+        ecole: stagiaireData.ecole || "",
+        specialite: stagiaireData.specialite || "",
+        niveau: stagiaireData.niveau || "",
+        dateDebut: formatDate(stagiaireData.dateDebut),
+        dateFin: formatDate(stagiaireData.dateFin),
+        encadrantId: stagiaireData.encadrantId || "",
+        sujet: stagiaireData.sujet || "",
+        description: stagiaireData.description || "",
+        competences: stagiaireData.competences || "",
+        status: stagiaireData.status || "En attente",
+        conventionValidee: stagiaireData.conventionValidee || false,
+        documents: stagiaireData.documents || [],
+        commentaires: stagiaireData.commentaires || [],
+        cv: null,
+        conventionDeStage: null,
+        demandeDeStage: null,
+      };
+
+      setFormData(formattedData);
+      setOriginalData(formattedData);
+    } catch (err) {
+      console.error("Error fetching stagiaire:", err);
+      setError("Erreur lors du chargement des données du stagiaire");
+    }
+  };
+
   // Page Effect
   useEffect(() => {
     const loadData = async () => {
-      await Promise.all([fetchUserProfile(), fetchSupervisors()]);
+      if (!stagiaireId) {
+        setError("ID du stagiaire manquant");
+        setInitialLoading(false);
+        return;
+      }
+
+      await Promise.all([
+        fetchUserProfile(),
+        fetchSupervisors(),
+        fetchStagiaire(),
+      ]);
+
+      setInitialLoading(false);
       const timer = setTimeout(() => {
         setIsLoaded(true);
       }, 100);
@@ -98,7 +182,7 @@ export default function AjouterStagiaire() {
     };
 
     loadData();
-  }, []);
+  }, [stagiaireId]);
 
   const handleInputChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -188,98 +272,88 @@ export default function AjouterStagiaire() {
     return Object.keys(newErrors).length === 0;
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  if (!validateForm()) {
-    setError("Veuillez corriger les erreurs dans le formulaire");
-    return;
-  }
-
-  setLoading(true);
-  setError(null);
-  setSuccess(null);
-
-  try {
-    const token = Cookies.get("token");
-
-    const form = new FormData();
-    form.append("nom", formData.nom);
-    form.append("prenom", formData.prenom);
-    form.append("email", formData.email);
-    form.append("phoneNumber", formData.phoneNumber);
-    form.append("ecole", formData.ecole);
-    form.append("specialite", formData.specialite);
-    form.append("niveau", formData.niveau);
-    form.append("dateDebut", formData.dateDebut.trim());
-    form.append("dateFin", formData.dateFin.trim());
-    form.append("encadrantId", formData.encadrantId);
-    form.append("sujet", formData.sujet);
-    form.append("description", formData.description);
-    form.append("competences", formData.competences);
-
-    if (formData.cv) form.append("CV", formData.cv);
-    if (formData.conventionDeStage) form.append("ConventionDeStage", formData.conventionDeStage);
-    if (formData.demandeDeStage) form.append("DemandeDeStage", formData.demandeDeStage);
-
-    const response = await fetch("/api/Stagiaire", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: form,
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        errorData.message || "Erreur lors de l'ajout du stagiaire"
-      );
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      setError("Veuillez corriger les erreurs dans le formulaire");
+      return;
     }
 
-    const result = await response.json();
-    setSuccess("Stagiaire ajouté avec succès!");
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
 
-    setFormData({
-      nom: "",
-      prenom: "",
-      email: "",
-      phoneNumber: "",
-      ecole: "",
-      specialite: "",
-      niveau: "",
-      dateDebut: "",
-      dateFin: "",
-      encadrantId: "",
-      sujet: "",
-      description: "",
-      competences: "",
-      cv: null,
-      conventionDeStage: null,
-      demandeDeStage: null,
-    });
+    try {
+      const token = Cookies.get("token");
 
-    const fileInputs = document.querySelectorAll('input[type="file"]');
-    fileInputs.forEach((input) => {
-      input.value = "";
-    });
+      // Create FormData for file uploads
+      const submitData = new FormData();
 
-    setTimeout(() => {
-      router.push("/Dashboard");
-    }, 2000);
-  } catch (err) {
-    console.error("Error adding intern:", err);
-    setError(err.message || "Erreur lors de l'ajout du stagiaire");
-  } finally {
-    setLoading(false);
-  }
-};
+      // Add all form fields
+      Object.keys(formData).forEach((key) => {
+        if (
+          key === "cv" ||
+          key === "conventionDeStage" ||
+          key === "demandeDeStage"
+        ) {
+          if (formData[key] instanceof File) {
+            submitData.append(key, formData[key]);
+          }
+        } else {
+          submitData.append(key, formData[key]);
+        }
+      });
 
+      const response = await fetch(`/api/Stagiaire/${stagiaires}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: submitData,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Erreur lors de la modification du stagiaire"
+        );
+      }
+
+      const result = await response.json();
+      setSuccess("Stagiaire modifié avec succès!");
+
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 2000);
+    } catch (err) {
+      console.error("Error updating intern:", err);
+      setError(err.message || "Erreur lors de la modification du stagiaire");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleReturnToDashboard = () => {
     router.push("/Dashboard");
   };
+
+  const hasChanges = () => {
+    return JSON.stringify(formData) !== JSON.stringify(originalData);
+  };
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+          <span className="text-lg font-medium text-gray-600">
+            Chargement...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -308,8 +382,10 @@ const handleSubmit = async (e) => {
           </button>
         </div>
       )}
+
       {/* Sidebar */}
       <Sidebar isLoaded={isLoaded} userProfile={userProfile} />
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col ml-64">
         {/* Header */}
@@ -331,10 +407,17 @@ const handleSubmit = async (e) => {
                 <span>Retour au tableau de bord</span>
               </button>
               <div className="h-6 w-px bg-gray-300"></div>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Ajouter un stagiaire
+              <h1 className="text-2xl font-semibold text-gray-900 flex items-center">
+                <Edit className="w-6 h-6 mr-2 text-purple-600" />
+                Modifier le stagiaire
               </h1>
             </div>
+            {hasChanges() && (
+              <div className="flex items-center space-x-2 text-orange-600">
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <span className="text-sm">Modifications non sauvegardées</span>
+              </div>
+            )}
           </div>
         </header>
 
@@ -372,7 +455,9 @@ const handleSubmit = async (e) => {
                           placeholder="Nom de famille"
                         />
                         {errors.nom && (
-                          <p className="mt-1 text-sm text-red-600">{errors.nom}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.nom}
+                          </p>
                         )}
                       </div>
                       <div>
@@ -477,7 +562,9 @@ const handleSubmit = async (e) => {
                           value={formData.specialite}
                           onChange={handleInputChange}
                           className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                            errors.specialite ? "border-red-500" : "border-gray-300"
+                            errors.specialite
+                              ? "border-red-500"
+                              : "border-gray-300"
                           }`}
                           placeholder="Ex: Informatique, Génie logiciel..."
                         />
@@ -537,7 +624,9 @@ const handleSubmit = async (e) => {
                           value={formData.dateDebut}
                           onChange={handleInputChange}
                           className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                            errors.dateDebut ? "border-red-500" : "border-gray-300"
+                            errors.dateDebut
+                              ? "border-red-500"
+                              : "border-gray-300"
                           }`}
                         />
                         {errors.dateDebut && (
@@ -556,7 +645,9 @@ const handleSubmit = async (e) => {
                           value={formData.dateFin}
                           onChange={handleInputChange}
                           className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                            errors.dateFin ? "border-red-500" : "border-gray-300"
+                            errors.dateFin
+                              ? "border-red-500"
+                              : "border-gray-300"
                           }`}
                         />
                         {errors.dateFin && (
@@ -574,13 +665,15 @@ const handleSubmit = async (e) => {
                           value={formData.encadrantId}
                           onChange={handleInputChange}
                           className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${
-                            errors.encadrantId ? "border-red-500" : "border-gray-300"
+                            errors.encadrantId
+                              ? "border-red-500"
+                              : "border-gray-300"
                           }`}
                         >
                           <option value="">Sélectionnez un encadrant</option>
                           {supervisors.map((supervisor) => (
                             <option key={supervisor._id} value={supervisor._id}>
-                              {supervisor.nom} {supervisor.prenom} {supervisor.departement}
+                              {supervisor.nom} {supervisor.prenom}
                             </option>
                           ))}
                         </select>
@@ -618,7 +711,9 @@ const handleSubmit = async (e) => {
                           placeholder="Titre du sujet de stage"
                         />
                         {errors.sujet && (
-                          <p className="mt-1 text-sm text-red-600">{errors.sujet}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.sujet}
+                          </p>
                         )}
                       </div>
                       <div>
@@ -669,7 +764,7 @@ const handleSubmit = async (e) => {
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                         />
                         <p className="mt-1 text-sm text-gray-500">
-                          Fichier PDF uniquement, taille maximale 5MB
+                          Laisser vide pour conserver le fichier actuel
                         </p>
                       </div>
                       <div>
@@ -684,7 +779,7 @@ const handleSubmit = async (e) => {
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                         />
                         <p className="mt-1 text-sm text-gray-500">
-                          Fichier PDF uniquement, taille maximale 5MB
+                          Laisser vide pour conserver le fichier actuel
                         </p>
                       </div>
                       <div>
@@ -699,7 +794,7 @@ const handleSubmit = async (e) => {
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                         />
                         <p className="mt-1 text-sm text-gray-500">
-                          Fichier PDF uniquement, taille maximale 5MB
+                          Laisser vide pour conserver le fichier actuel
                         </p>
                       </div>
                     </div>
@@ -708,28 +803,25 @@ const handleSubmit = async (e) => {
               </div>
 
               {/* Submit Button */}
-              <div className="flex items-center justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={handleReturnToDashboard}
-                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200"
-                >
-                  Annuler
-                </button>
+              <div className="mt-8 flex justify-end">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`flex items-center px-6 py-3 rounded-lg text-white font-semibold shadow-md transition-all duration-300 ${
+                    loading
+                      ? "bg-purple-400 cursor-not-allowed"
+                      : "bg-purple-600 hover:bg-purple-700"
+                  }`}
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Ajout en cours...</span>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Enregistrement...
                     </>
                   ) : (
                     <>
-                      <Save className="w-5 h-5" />
-                      <span>Ajouter le stagiaire</span>
+                      <Save className="w-5 h-5 mr-2" />
+                      Sauvegarder les modifications
                     </>
                   )}
                 </button>

@@ -1,6 +1,7 @@
 "use client";
-import { Users, BookOpen, Download, Search, CheckCircle, UserCheck, BarChart3, FileText, ArrowRight, Shield, Clock, TrendingUp } from 'lucide-react';
-
+import { Users, BookOpen, Download, Search, CheckCircle, UserCheck, BarChart3, ArrowRight, Shield, Clock, TrendingUp } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 export default function Home() {
   const features = [
     {
@@ -23,7 +24,7 @@ export default function Home() {
     },
     {
       icon: Search,
-      title: "Recherche Avancée",
+      title: "Recherche",
       description: "Trouvez rapidement n'importe quel stagiaire grâce à notre système de recherche par nom, prénom ou email.",
       color: "bg-orange-100 text-orange-600"
     },
@@ -35,22 +36,14 @@ export default function Home() {
     },
     {
       icon: Shield,
-      title: "Sécurité Avancée",
+      title: "Sécurité",
       description: "Système d'authentification sécurisé avec tokens JWT et gestion des permissions utilisateur.",
       color: "bg-indigo-100 text-indigo-600"
     }
   ];
 
-  const stats = [
-    { number: "100%", label: "Gestion Numérique", icon: TrendingUp },
-    { number: "24/7", label: "Disponibilité", icon: Clock },
-    { number: "+1M", label: "Stagiaires Supportés", icon: Users },
-    { number: "3s", label: "Temps de Réponse", icon: BarChart3 }
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      {/* Custom Media Query Styles */}
       <style jsx>{`
         /* Mobile First Approach */
         @media (max-width: 640px) {
@@ -193,20 +186,21 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 header-content">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
-                <BookOpen className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+              <div className="">
+                <Image src="/DXC-Technology.png" alt="Description of the image" width={125} height={30} className=""/>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent header-title">
+              {/* <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent header-title">
                 StageManager
-              </h1>
+              </h1> */}
             </div>
-            <button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 sm:px-6 sm:py-2 rounded-full hover:shadow-lg transition-all duration-300 transform hover:scale-105 header-button">
+            <Link href="/Login">
+            <button className="bg-gradient-to-r bg-purple-800 text-white px-4 py-2 sm:px-6 sm:py-2 rounded-full hover:shadow-lg transition-all duration-300 transform hover:scale-105 header-button">
               Se Connecter
             </button>
+            </Link>
           </div>
         </div>
       </header>
-
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -217,7 +211,7 @@ export default function Home() {
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
               Gérez vos{" "}
-              <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r bg-purple-800 bg-clip-text text-transparent">
                 stagiaires
               </span>
               <br />
@@ -225,38 +219,19 @@ export default function Home() {
             </h1>
             <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
               Une solution complète pour la gestion des stages : inscriptions, validations, 
-              suivi des stagiaires et génération de rapports détaillés.
+              suivi des stagiaires et génération de rapports.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
+              <Link href="/Login">
+              <button className="bg-gradient-to-r bg-purple-800 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
                 Commencer Maintenant
                 <ArrowRight className="w-5 h-5 ml-2" />
               </button>
-
+              </Link>
             </div>
           </div>
         </div>
-        
-
       </section>
-
-      {/* Stats Section */}
-      <section className="py-12 sm:py-16 bg-white/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 stats-grid">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl mb-3 sm:mb-4">
-                  <stat.icon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
-                </div>
-                <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">{stat.number}</div>
-                <div className="text-sm sm:text-base text-gray-600">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Features Section */}
       <section className="py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -289,16 +264,15 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* Dashboard Preview */}
       <section className="py-16 sm:py-20 bg-gradient-to-r from-purple-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Tableau de Bord Intuitif
+              Tableau de Bord
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto px-4">
-              Visualisez toutes vos données en un coup d'œil avec notre interface moderne et intuitive.
+              Visualisez toutes vos données en un coup d'œil avec notre interface moderne.
             </p>
           </div>
           <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-8 max-w-4xl mx-auto dashboard-preview">
@@ -349,24 +323,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-purple-600 to-blue-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Prêt à Révolutionner votre Gestion des Stages ?
-          </h2>
-          <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
-            Rejoignez des centaines d'organisations qui font confiance à StageManager 
-            pour gérer leurs programmes de stages.
-          </p>
-          <button className="bg-white text-purple-600 px-8 py-4 rounded-full text-lg font-semibold hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center mx-auto">
-            Commencer Gratuitement
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </button>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
