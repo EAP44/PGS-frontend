@@ -174,8 +174,8 @@ export default function DetailsStagiaire({ params }) {
   const deleteStagiaire = async () => {
     try {
       const token = Cookies.get("token");
-      const response = await fetch(`/api/Stagiaire/${stagiaireId}`, {
-        method: "DELETE",
+      const response = await fetch(`/api/Stagiaire/soft-delete/${stagiaireId}`, {
+        method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
         },
