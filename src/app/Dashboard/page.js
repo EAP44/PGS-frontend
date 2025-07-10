@@ -251,7 +251,7 @@ const downloadPDF = () => {
     .catch((err) => console.error("PDF download failed", err));
 };
 const downloadExcel = () => {
-  fetch("http://localhost:3000/api/dashboard/excel")
+  fetch("/api/dashboard/excel")
     .then((res) => res.blob())
     .then((blob) => {
       const url = window.URL.createObjectURL(blob);
