@@ -96,7 +96,7 @@ export default function Stagiaire() {
       setRejectedInterns(data || []);
     } catch (err) {
       console.error("Error fetching rejected interns:", err);
-      setError("Erreur lors du chargement des stagiaires rejetés");
+      setError("Erreur lors du chargement des stagiaires Retirés");
       setRejectedInterns([]);
     }
   };
@@ -166,6 +166,21 @@ export default function Stagiaire() {
       setError("Erreur lors de la suppression du stagiaire");
     }
   };
+
+  const downloadExcel = () => {
+  fetch("/api/dashboard/excel")
+    .then((res) => res.blob())
+    .then((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "dashboard-stats.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    })
+    .catch((err) => console.error("Excel download failed", err));
+};
 
   // Open delete modal
   const openDeleteModal = (intern) => {
@@ -275,7 +290,7 @@ export default function Stagiaire() {
       case "Complète":
         return "Complète";
       case "Annulé":
-        return "Rejeté";
+        return "Retiré";
       case "En attente":
         return "En attente";
       default:
@@ -322,13 +337,13 @@ export default function Stagiaire() {
                   <Trash2 className="w-6 h-6 text-red-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">Rejeter</h3>
+                  <h3 className="text-lg font-medium text-gray-900">Retirer</h3>
                 </div>
               </div>
 
               <div className="mb-6">
                 <p className="text-sm text-gray-600">
-                  Êtes-vous sûr de vouloir rejeter{" "}
+                  Êtes-vous sûr de vouloir Retirer{" "}
                   <span className="font-semibold text-gray-900">
                     {deleteModal.intern?.nom} {deleteModal.intern?.prenom}
                   </span>{" "}
@@ -352,7 +367,7 @@ export default function Stagiaire() {
                   }
                   className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                 >
-                  Rejeter
+                  Retirer
                 </button>
               </div>
             </div>
@@ -425,7 +440,7 @@ export default function Stagiaire() {
                     <option value="all">Tous les statuts</option>
                     <option value="pending">En attente</option>
                     <option value="approved">Approuvé</option>
-                    <option value="rejected">Rejeté</option>
+                    <option value="rejected">Retiré</option>
                   </select>
                 </div>
                 <div>
@@ -518,7 +533,7 @@ export default function Stagiaire() {
                   <Trash2 className="w-5 h-5 text-red-600" />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Rejetés</p>
+                  <p className="text-sm font-medium text-gray-500">Retirés</p>
                   <p className="text-2xl font-semibold text-gray-900">
                     {rejectedInterns.length}
                   </p>
@@ -540,7 +555,7 @@ export default function Stagiaire() {
                   Liste des Stagiaires ({filteredStagiaires.length})
                 </h2>
                 <div className="flex items-center space-x-2">
-                  <button className="flex items-center space-x-2 px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+                  <button className="flex items-center space-x-2 px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-all" onClick={downloadExcel}>
                     <Download className="w-4 h-4" />
                     <span>Exporter</span>
                   </button>

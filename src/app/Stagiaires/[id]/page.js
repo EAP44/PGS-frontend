@@ -362,13 +362,13 @@ const downloadFile = async (fileId) => {
                   <Trash2 className="w-6 h-6 text-red-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">Rejeter</h3>
+                  <h3 className="text-lg font-medium text-gray-900">Retirer</h3>
                 </div>
               </div>
 
               <div className="mb-6">
                 <p className="text-sm text-gray-600">
-                  Êtes-vous sûr de vouloir rejeter{" "}
+                  Êtes-vous sûr de vouloir Retirer{" "}
                   <span className="font-semibold text-gray-900">
                     {stagiaire.nom} {stagiaire.prenom}?
                   </span>
@@ -391,7 +391,7 @@ const downloadFile = async (fileId) => {
                   }}
                   className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                 >
-                  Rejeter
+                  Retirer
                 </button>
               </div>
             </div>
@@ -440,7 +440,7 @@ const downloadFile = async (fileId) => {
                 className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>Rejeter</span>
+                <span>Retirer</span>
               </button>
             </div>
           </div>

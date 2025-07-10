@@ -51,7 +51,7 @@ export default function StagiairesRejetes() {
       setRejectedInterns(data || []);
     } catch (err) {
       console.error("Error fetching rejected interns:", err);
-      setError("Erreur lors du chargement des stagiaires rejetés");
+      setError("Erreur lors du chargement des stagiaires Retirés");
       setRejectedInterns([]);
     }
   };
@@ -289,7 +289,7 @@ export default function StagiairesRejetes() {
               <div className="flex items-center space-x-2">
                 <UserX className="w-6 h-6 text-red-600" />
                 <h1 className="text-2xl font-semibold text-gray-900">
-                  Stagiaires Rejetés
+                  Stagiaires Retirés
                 </h1>
               </div>
               <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-sm font-medium">
@@ -334,15 +334,15 @@ export default function StagiairesRejetes() {
                   onChange={(e) => setFilterBy(e.target.value)}
                   className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
-                  <option value="all">Tous les stagiaires rejetés</option>
-                  <option value="recent">Rejetés récemment (30 jours)</option>
+                  <option value="all">Tous les stagiaires Retirés</option>
+                  <option value="recent">Retirés récemment (30 jours)</option>
                 </select>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
-                  <option value="dateRejected">Trier par date de rejet</option>
+                  <option value="dateRejected">Trier par date de Retirer</option>
                   <option value="name">Trier par nom</option>
                 </select>
               </div>
@@ -365,12 +365,12 @@ export default function StagiairesRejetes() {
                   <UserX className="w-12 h-12 mx-auto" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Aucun stagiaire rejeté
+                  Aucun stagiaire Retiré
                 </h3>
                 <p className="text-gray-500">
                   {error
                     ? "Impossible de charger les données."
-                    : "Aucun stagiaire n'a été rejeté pour le moment."}
+                    : "Aucun stagiaire n'a été Retiré pour le moment."}
                 </p>
               </div>
             ) : filteredAndSortedInterns.length === 0 ? (
@@ -398,7 +398,7 @@ export default function StagiairesRejetes() {
                         Contact
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date de rejet
+                        Date de Retirer
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Raison

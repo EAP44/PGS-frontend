@@ -305,13 +305,13 @@ const downloadExcel = () => {
                   <Trash2 className="w-6 h-6 text-red-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">Rejeter</h3>
+                  <h3 className="text-lg font-medium text-gray-900">Retirer</h3>
                 </div>
               </div>
 
               <div className="mb-6">
                 <p className="text-sm text-gray-600">
-                  Êtes-vous sûr de vouloir rejeter{" "}
+                  Êtes-vous sûr de vouloir Retirer{" "}
                   <span className="font-semibold text-gray-900">
                     {deleteModal.intern?.nom} {deleteModal.intern?.prenom}
                   </span>{" "}
@@ -335,7 +335,7 @@ const downloadExcel = () => {
                   {isUpdating ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    "Rejeter"
+                    "Retirer"
                   )}
                 </button>
               </div>
@@ -513,7 +513,7 @@ const downloadExcel = () => {
                                   onClick={() => openDeleteModal(intern)}
                                   className="bg-red-100 text-red-600 px-3 py-1 rounded-s text-xs hover:bg-red-200 transition-all duration-200 transform hover:scale-105"
                                 >
-                                  Rejeter
+                                  Retirer
                                 </button>
                               </div>
                             </td>
