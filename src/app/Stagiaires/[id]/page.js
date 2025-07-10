@@ -34,7 +34,6 @@ export default function DetailsStagiaire({ params }) {
   const router = useRouter();
   const { id } = React.use(params);
   const stagiaireId = id;
-  // const encadrantId = stagiaire.encadrantId
 
   // Fetch user profile
   const fetchUserProfile = async () => {
@@ -87,37 +86,43 @@ export default function DetailsStagiaire({ params }) {
       setLoading(false);
     }
   };
-
   // Fetch supervisors
-  const fetchSupervisors = async () => {
-    try {
-      const token = Cookies.get("token");
-      const response = await fetch(`/api/test/Encadrant/${stagiaire.encadrantId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-      });
+  useEffect(() => {
+    const fetchSupervisors = async () => {
+      if (!stagiaire || !stagiaire.encadrantId) return;
+      try {
+        const token = Cookies.get("token");
+        const response = await fetch(
+          `/api/test/Encadrant/${stagiaire.encadrantId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          }
+        );
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch supervisors");
+        if (!response.ok) {
+          throw new Error("Failed to fetch supervisors");
+        }
+
+        const data = await response.json();
+        setSupervisor(data);
+      } catch (err) {
+        console.error("Error fetching supervisors:", err);
+        setSupervisor([]);
       }
+    };
 
-      const data = await response.json();
-      setSupervisor(data);
-    } catch (err) {
-      console.error("Error fetching supervisors:", err);
-      setSupervisor([]);
-    }
-  };
-
+    fetchSupervisors();
+  }, [stagiaire]);
 
   // Page Effect
   useEffect(() => {
     const loadData = async () => {
-      await Promise.all([fetchUserProfile(), fetchStagiaireDetails(),fetchSupervisors()]);
+      await Promise.all([fetchUserProfile(), fetchStagiaireDetails()]);
       const timer = setTimeout(() => {
         setIsLoaded(true);
       }, 100);
@@ -128,59 +133,55 @@ export default function DetailsStagiaire({ params }) {
       loadData();
     }
   }, [stagiaireId]);
-
   // Download file function
-  const downloadFile = async (fileType, fileName) => {
-    try {
-      setDownloadingFile(fileType);
-      const token = Cookies.get("token");
+const downloadFile = async (fileId) => {
+  try {
+    setDownloadingFile(fileId);
 
+    const token = Cookies.get("token");
+
+    const response = await fetch(`/api/files/download/${fileId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error("Erreur lors du téléchargement du fichier");
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 10000);
+
+    setSuccess("Fichier ouvert avec succès");
+  } catch (err) {
+    console.error("Error downloading file:", err);
+    setError("Erreur lors de l'ouverture du fichier");
+  } finally {
+    setDownloadingFile(null);
+  }
+};
+
+  // Delete stagiaire function
+  const deleteStagiaire = async () => {
+    try {
+      const token = Cookies.get("token");
       const response = await fetch(
-        `/api/Stagiaire/${stagiaireId}/download/${fileType}`,
+        `/api/Stagiaire/soft-delete/${stagiaireId}`,
         {
-          method: "GET",
+          method: "PATCH",
           headers: {
             Authorization: `Bearer ${token}`,
           },
           credentials: "include",
         }
       );
-
-      if (!response.ok) {
-        throw new Error("Erreur lors du téléchargement du fichier");
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download =
-        fileName || `${fileType}_${stagiaire.nom}_${stagiaire.prenom}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      setSuccess("Fichier téléchargé avec succès");
-    } catch (err) {
-      console.error("Error downloading file:", err);
-      setError("Erreur lors du téléchargement du fichier");
-    } finally {
-      setDownloadingFile(null);
-    }
-  };
-
-  // Delete stagiaire function
-  const deleteStagiaire = async () => {
-    try {
-      const token = Cookies.get("token");
-      const response = await fetch(`/api/Stagiaire/soft-delete/${stagiaireId}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-      });
 
       if (!response.ok) {
         throw new Error("Erreur lors de la suppression du stagiaire");
@@ -200,13 +201,13 @@ export default function DetailsStagiaire({ params }) {
   const updateStatus = async (newStatus) => {
     try {
       const token = Cookies.get("token");
-      const response = await fetch(`/api/Stagiaire/${stagiaireId}/status`, {
+      const response = await fetch(`/api/stagiaire/update-status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ id:stagiaireId , status: newStatus }),
         credentials: "include",
       });
 
@@ -215,7 +216,7 @@ export default function DetailsStagiaire({ params }) {
       }
 
       const updatedStagiaire = await response.json();
-      setStagiaire(updatedStagiaire);
+      setStagiaire(updatedStagiaire.stagiaire);
       setSuccess("Statut mis à jour avec succès");
     } catch (err) {
       console.error("Error updating status:", err);
@@ -235,7 +236,7 @@ export default function DetailsStagiaire({ params }) {
     switch (status) {
       case "En attente":
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "Approuvé":
+      case "Complète":
         return "bg-green-100 text-green-800 border-green-200";
       case "Rejeté":
         return "bg-red-100 text-red-800 border-red-200";
@@ -361,9 +362,7 @@ export default function DetailsStagiaire({ params }) {
                   <Trash2 className="w-6 h-6 text-red-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Rejeter
-                  </h3>
+                  <h3 className="text-lg font-medium text-gray-900">Rejeter</h3>
                 </div>
               </div>
 
@@ -371,7 +370,7 @@ export default function DetailsStagiaire({ params }) {
                 <p className="text-sm text-gray-600">
                   Êtes-vous sûr de vouloir rejeter{" "}
                   <span className="font-semibold text-gray-900">
-                    {stagiaire.nom}{" "}{stagiaire.prenom}?
+                    {stagiaire.nom} {stagiaire.prenom}?
                   </span>
                   .
                 </p>
@@ -496,10 +495,10 @@ export default function DetailsStagiaire({ params }) {
                       className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     >
                       <option value="En attente">En attente</option>
-                      <option value="Approuvé">Approuvé</option>
-                      <option value="Rejeté">Rejeté</option>
+                      <option value="Complète">Complète</option>
+                      {/* <option value="Annulé">Annulé</option>
                       <option value="En cours">En cours</option>
-                      <option value="Terminé">Terminé</option>
+                      <option value="Terminé">Terminé</option> */}
                     </select>
                   </div>
                 </div>
@@ -642,8 +641,7 @@ export default function DetailsStagiaire({ params }) {
                             Encadrant
                           </label>
                           <p className="text-gray-900">
-                            {supervisor.nom}{" "}
-                            {supervisor.prenom}
+                            {supervisor.nom} {supervisor.prenom}
                           </p>
                           <p className="text-sm text-gray-600">
                             {supervisor.departement}
@@ -667,13 +665,13 @@ export default function DetailsStagiaire({ params }) {
                       Documents
                     </h3>
                     <div className="space-y-3">
-                      {stagiaire.CV && (
+                      {stagiaire.documents.cv && (
                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div className="flex items-center space-x-3">
                             <FileText className="w-5 h-5 text-gray-600" />
                             <div>
                               <p className="text-sm font-medium text-gray-900">
-                                CV
+                                {`CV_${stagiaire.nom}_${stagiaire.prenom}.pdf`}
                               </p>
                               <p className="text-xs text-gray-500">
                                 Document PDF
@@ -682,10 +680,7 @@ export default function DetailsStagiaire({ params }) {
                           </div>
                           <button
                             onClick={() =>
-                              downloadFile(
-                                "cv",
-                                `CV_${stagiaire.nom}_${stagiaire.prenom}.pdf`
-                              )
+                              downloadFile(stagiaire.documents.cv)
                             }
                             disabled={downloadingFile === "cv"}
                             className="flex items-center space-x-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
@@ -699,13 +694,13 @@ export default function DetailsStagiaire({ params }) {
                           </button>
                         </div>
                       )}
-                      {stagiaire.ConventionDeStage && (
+                      {stagiaire.documents.conventionDeStage && (
                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div className="flex items-center space-x-3">
                             <FileText className="w-5 h-5 text-gray-600" />
                             <div>
                               <p className="text-sm font-medium text-gray-900">
-                                Convention de stage
+                                {`conventionDeStage_${stagiaire.nom}_${stagiaire.prenom}.pdf`}
                               </p>
                               <p className="text-xs text-gray-500">
                                 Document PDF
@@ -714,10 +709,7 @@ export default function DetailsStagiaire({ params }) {
                           </div>
                           <button
                             onClick={() =>
-                              downloadFile(
-                                "convention",
-                                `Convention_${stagiaire.nom}_${stagiaire.prenom}.pdf`
-                              )
+                              downloadFile(stagiaire.documents.conventionDeStage)
                             }
                             disabled={downloadingFile === "convention"}
                             className="flex items-center space-x-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
@@ -731,13 +723,13 @@ export default function DetailsStagiaire({ params }) {
                           </button>
                         </div>
                       )}
-                      {stagiaire.DemandeDeStage && (
+                      {stagiaire.documents.demandeDeStage && (
                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div className="flex items-center space-x-3">
                             <FileText className="w-5 h-5 text-gray-600" />
                             <div>
                               <p className="text-sm font-medium text-gray-900">
-                                Demande de stage
+                                {`demandeDeStage_${stagiaire.nom}_${stagiaire.prenom}.pdf`}
                               </p>
                               <p className="text-xs text-gray-500">
                                 Document PDF
@@ -746,10 +738,7 @@ export default function DetailsStagiaire({ params }) {
                           </div>
                           <button
                             onClick={() =>
-                              downloadFile(
-                                "demande",
-                                `Demande_${stagiaire.nom}_${stagiaire.prenom}.pdf`
-                              )
+                              downloadFile(stagiaire.documents.demandeDeStage)
                             }
                             disabled={downloadingFile === "demande"}
                             className="flex items-center space-x-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
@@ -763,9 +752,9 @@ export default function DetailsStagiaire({ params }) {
                           </button>
                         </div>
                       )}
-                      {!stagiaire.CV &&
-                        !stagiaire.ConventionDeStage &&
-                        !stagiaire.DemandeDeStage && (
+                      {!stagiaire.documents.cv &&
+                        !stagiaire.documents.conventionDeStage &&
+                        !stagiaire.documents.demandeDeStage && (
                           <div className="text-center py-8">
                             <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                             <p className="text-gray-500">
@@ -806,12 +795,12 @@ export default function DetailsStagiaire({ params }) {
                       {formatDate(stagiaire.updatedAt)}
                     </p>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  {/* <div className="p-4 bg-gray-50 rounded-lg">
                     <p className="text-sm text-gray-600 mb-1">Adresse</p>
                     <p className="text-sm font-medium text-gray-900">
                       {stagiaire.adresse || "Non spécifiée"}
                     </p>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

@@ -231,14 +231,39 @@ export default function InternshipDashboard() {
   };
 
   // Handle download report with error handling
-  const handleDownloadReport = async (format) => {
-    try {
-      await DownloadReport(format);
-    } catch (err) {
-      console.error("Error downloading report:", err);
-      setError("Erreur lors du téléchargement du rapport. Veuillez réessayer.");
-    }
-  };
+const downloadPDF = () => {
+  fetch("/api/dashboard/pdf", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/pdf",
+    },
+  })
+    .then((response) => response.blob())
+    .then((blob) => {
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "dashboard-stats.pdf");
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    })
+    .catch((err) => console.error("PDF download failed", err));
+};
+const downloadExcel = () => {
+  fetch("http://localhost:3000/api/dashboard/excel")
+    .then((res) => res.blob())
+    .then((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "dashboard-stats.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    })
+    .catch((err) => console.error("Excel download failed", err));
+};
 
   if (loading) {
     return (
@@ -514,7 +539,7 @@ export default function InternshipDashboard() {
               </h2>
               <div className="space-y-4">
                 <button
-                  onClick={() => DownloadReport("pdf")}
+                  onClick={() => downloadPDF()}
                   className={`w-full flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-300 transform hover:scale-105 ${
                     isLoaded
                       ? "translate-y-0 opacity-100"
@@ -531,7 +556,7 @@ export default function InternshipDashboard() {
                   <Download className="w-4 h-4 text-gray-400" />
                 </button>
                 <button
-                  onClick={() => DownloadReport("excel")}
+                  onClick={() => downloadExcel()}
                   className={`w-full flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-300 transform hover:scale-105 ${
                     isLoaded
                       ? "translate-y-0 opacity-100"

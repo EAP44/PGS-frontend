@@ -188,94 +188,93 @@ export default function AjouterStagiaire() {
     return Object.keys(newErrors).length === 0;
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!validateForm()) {
-    setError("Veuillez corriger les erreurs dans le formulaire");
-    return;
-  }
-
-  setLoading(true);
-  setError(null);
-  setSuccess(null);
-
-  try {
-    const token = Cookies.get("token");
-
-    const form = new FormData();
-    form.append("nom", formData.nom);
-    form.append("prenom", formData.prenom);
-    form.append("email", formData.email);
-    form.append("phoneNumber", formData.phoneNumber);
-    form.append("ecole", formData.ecole);
-    form.append("specialite", formData.specialite);
-    form.append("niveau", formData.niveau);
-    form.append("dateDebut", formData.dateDebut.trim());
-    form.append("dateFin", formData.dateFin.trim());
-    form.append("encadrantId", formData.encadrantId);
-    form.append("sujet", formData.sujet);
-    form.append("description", formData.description);
-    form.append("competences", formData.competences);
-
-    if (formData.cv) form.append("CV", formData.cv);
-    if (formData.conventionDeStage) form.append("ConventionDeStage", formData.conventionDeStage);
-    if (formData.demandeDeStage) form.append("DemandeDeStage", formData.demandeDeStage);
-
-    const response = await fetch("/api/Stagiaire", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: form,
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        errorData.message || "Erreur lors de l'ajout du stagiaire"
-      );
+    if (!validateForm()) {
+      setError("Veuillez corriger les erreurs dans le formulaire");
+      return;
     }
 
-    const result = await response.json();
-    setSuccess("Stagiaire ajouté avec succès!");
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
 
-    setFormData({
-      nom: "",
-      prenom: "",
-      email: "",
-      phoneNumber: "",
-      ecole: "",
-      specialite: "",
-      niveau: "",
-      dateDebut: "",
-      dateFin: "",
-      encadrantId: "",
-      sujet: "",
-      description: "",
-      competences: "",
-      cv: null,
-      conventionDeStage: null,
-      demandeDeStage: null,
-    });
+    try {
+      const token = Cookies.get("token");
 
-    const fileInputs = document.querySelectorAll('input[type="file"]');
-    fileInputs.forEach((input) => {
-      input.value = "";
-    });
+      const form = new FormData();
 
-    setTimeout(() => {
-      router.push("/Dashboard");
-    }, 2000);
-  } catch (err) {
-    console.error("Error adding intern:", err);
-    setError(err.message || "Erreur lors de l'ajout du stagiaire");
-  } finally {
-    setLoading(false);
-  }
-};
+      form.append("nom", formData.nom);
+      form.append("prenom", formData.prenom);
+      form.append("email", formData.email);
+      form.append("phoneNumber", formData.phoneNumber);
+      form.append("ecole", formData.ecole);
+      form.append("specialite", formData.specialite);
+      form.append("niveau", formData.niveau);
+      form.append("dateDebut", formData.dateDebut.trim());
+      form.append("dateFin", formData.dateFin.trim());
+      form.append("encadrantId", formData.encadrantId);
+      form.append("sujet", formData.sujet);
+      form.append("description", formData.description);
+      form.append("competences", formData.competences);
 
+      if (formData.cv) form.append("CV", formData.cv);
+      if (formData.conventionDeStage)
+        form.append("ConventionDeStage", formData.conventionDeStage);
+      if (formData.demandeDeStage)
+        form.append("DemandeDeStage", formData.demandeDeStage);
+
+      const response = await fetch("/api/Stagiaire", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Ne pas mettre Content-Type pour FormData
+        },
+        body: form,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || "Erreur lors de l'ajout du stagiaire");
+      }
+
+      await response.json();
+      setSuccess("Stagiaire ajouté avec succès!");
+
+      setFormData({
+        nom: "",
+        prenom: "",
+        email: "",
+        phoneNumber: "",
+        ecole: "",
+        specialite: "",
+        niveau: "",
+        dateDebut: "",
+        dateFin: "",
+        encadrantId: "",
+        sujet: "",
+        description: "",
+        competences: "",
+        cv: null,
+        conventionDeStage: null,
+        demandeDeStage: null,
+      });
+
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      fileInputs.forEach((input) => (input.value = ""));
+
+      setTimeout(() => {
+        router.push("/Dashboard");
+      }, 2000);
+    } catch (err) {
+      console.error("Error adding intern:", err);
+      setError(err.message || "Erreur lors de l'ajout du stagiaire");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleReturnToDashboard = () => {
     router.push("/Dashboard");

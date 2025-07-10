@@ -199,7 +199,6 @@ export default function ModifierStagiaire() {
       }));
     }
 
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -272,67 +271,95 @@ export default function ModifierStagiaire() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      setError("Veuillez corriger les erreurs dans le formulaire");
-      return;
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
+  if (!validateForm()) {
+    setError("Veuillez corriger les erreurs dans le formulaire");
+    return;
+  }
 
-    try {
-      const token = Cookies.get("token");
+  setLoading(true);
+  setError(null);
+  setSuccess(null);
 
-      // Create FormData for file uploads
-      const submitData = new FormData();
+  try {
+    const token = Cookies.get("token");
+    const submitData = new FormData();
 
-      // Add all form fields
-      Object.keys(formData).forEach((key) => {
-        if (
-          key === "cv" ||
-          key === "conventionDeStage" ||
-          key === "demandeDeStage"
-        ) {
-          if (formData[key] instanceof File) {
-            submitData.append(key, formData[key]);
+    Object.entries(formData).forEach(([key, value]) => {
+      if (["cv", "conventionDeStage", "demandeDeStage"].includes(key)) {
+        if (value instanceof File) {
+          let formKey = "";
+          switch (key) {
+            case "cv":
+              formKey = "CV";
+              break;
+            case "conventionDeStage":
+              formKey = "ConventionDeStage";
+              break;
+            case "demandeDeStage":
+              formKey = "DemandeDeStage";
+              break;
+            default:
+              formKey = key;
           }
-        } else {
-          submitData.append(key, formData[key]);
+          submitData.append(formKey, value);
         }
-      });
-
-      const response = await fetch(`/api/Stagiaire/${stagiaires}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: submitData,
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "Erreur lors de la modification du stagiaire"
-        );
+      } else if (key !== "documents" && key !== "commentaires") {
+        submitData.append(key, value);
       }
+    });
 
-      const result = await response.json();
-      setSuccess("Stagiaire modifié avec succès!");
+    // DEBUG : afficher le contenu du FormData
+for (const [key, value] of submitData.entries()) {
+  if (value instanceof File) {
+    console.log(`${key}: FILE - name=${value.name}, size=${value.size}`);
+  } else {
+    console.log(`${key}:`, value);
+  }
+}
 
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 2000);
-    } catch (err) {
-      console.error("Error updating intern:", err);
-      setError(err.message || "Erreur lors de la modification du stagiaire");
-    } finally {
-      setLoading(false);
+
+    const response = await fetch(`/api/Stagiaire/${stagiaireId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // Ne pas définir 'Content-Type' ici
+      },
+      body: submitData,
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      let errorMessage = "Erreur lors de la modification du stagiaire";
+      try {
+        const errorData = JSON.parse(text);
+        if (errorData.message) errorMessage = errorData.message;
+        else if (errorData.error) errorMessage = errorData.error;
+      } catch {
+        if (text) errorMessage = text;
+      }
+      console.error("Server response status:", response.status);
+      console.error("Server response body:", text);
+      throw new Error(errorMessage);
     }
-  };
+
+    const result = await response.json();
+    setSuccess("Stagiaire modifié avec succès !");
+
+    setTimeout(() => {
+      router.push("/Dashboard");
+    }, 2000);
+
+  } catch (err) {
+    console.error("Error updating intern:", err);
+    setError(err.message || "Erreur lors de la modification du stagiaire");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleReturnToDashboard = () => {
     router.push("/Dashboard");
