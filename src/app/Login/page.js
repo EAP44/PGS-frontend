@@ -7,8 +7,8 @@ import Cookies from "js-cookie";
 import Link from "next/link";
 
 export default function Login() {
-  const [email, setEmail] = useState("hanane.enc@dxc.com");
-  const [password, setPassword] = useState("hananepass");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -86,13 +86,13 @@ export default function Login() {
         className="absolute top-4 left-4 text-gray-500 text-sm font-medium tracking-wide uppercase underline flex items-center gap-1"
       >
         <ArrowLeft size={16} />
-        Go back
+        Retour
       </Link>
       <div className="flex-1 flex items-center justify-center bg-gray-50 px-8">
         <div className="max-w-md w-full space-y-8">
           <div>
             <p className="text-gray-500 text-sm font-medium tracking-wide uppercase">
-              WELCOME BACK
+              BON RETOUR
             </p>
             <h2 className="mt-4 text-3xl font-bold text-gray-900">
               Continuez vers votre compte.
@@ -120,6 +120,7 @@ export default function Login() {
                   name="email"
                   type="email"
                   required
+                  placeholder="tapez votre email"
                   className="w-full px-3 py-3 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -140,7 +141,7 @@ export default function Login() {
                     type={showPassword ? "text" : "password"}
                     required
                     className="w-full px-3 py-3 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent pr-10"
-                    placeholder="•••••••••••••"
+                    placeholder="tapez votre mot de passe"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
